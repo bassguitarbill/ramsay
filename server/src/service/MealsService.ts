@@ -28,7 +28,39 @@ async function addNewMeal(newMeal: Meal): Promise<Meal> {
   return newMeal;
 }
 
+async function getMeal(id: string): Promise<Meal | undefined> {
+  const file = await Deno.readTextFile('data/meals.json');
+  const mealsData = JSON.parse(file) as Array<Meal>;
+  const meal = mealsData.find(meal => meal.id === id);
+  return meal;
+}
+
+async function modifyMeal(id: string, newMeal: Meal): Promise<Meal | null> {
+  const file = await Deno.readTextFile('data/meals.json');
+  const mealsData = JSON.parse(file) as Array<Meal>;
+  const existingMealIndex = mealsData.findIndex(meal => meal.id === id);
+  if (existingMealIndex === -1) return null;
+  mealsData.splice(existingMealIndex, 1, newMeal);
+  const newMealsData = JSON.stringify(mealsData);
+  await Deno.writeTextFile(MEAL_FILE_PATH, newMealsData);
+  return newMeal;
+}
+
+async function deleteMeal(id: string): Promise<boolean> {
+  const file = await Deno.readTextFile('data/meals.json');
+  const mealsData = JSON.parse(file) as Array<Meal>;
+  const existingMealIndex = mealsData.findIndex(meal => meal.id === id);
+  if (existingMealIndex === -1) return false;
+  mealsData.splice(existingMealIndex, 1);
+  const newMealsData = JSON.stringify(mealsData);
+  await Deno.writeTextFile(MEAL_FILE_PATH, newMealsData);
+  return true;
+}
+
 export default {
   getAllMeals,
   addNewMeal,
+  getMeal,
+  modifyMeal,
+  deleteMeal,
 }

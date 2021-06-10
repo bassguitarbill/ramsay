@@ -1,3 +1,9 @@
+function generateResponse(status: number, body: string | undefined = '', contentType?: string) {
+  const headers = new Headers;
+  if (contentType) headers.set('content-type', contentType);
+  return { status, body, headers };
+}
+
 const DEFAULT_TYPE = 'text/plain';
 
 export default function getMediaType(url: string): string {
@@ -15,4 +21,9 @@ export default function getMediaType(url: string): string {
     default:
       return DEFAULT_TYPE;
   }
+}
+
+export {
+  generateResponse,
+  getMediaType,
 }
