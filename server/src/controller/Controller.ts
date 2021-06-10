@@ -19,6 +19,7 @@ export default async function route(request: ServerRequest) {
     case (url.match(/\/api\//) || {}).input:
       return await APIController.route(request);
     default:
-      return RESPONSE_404;
+      request.url = '/index.html';
+      return await StaticController.route(request);
   }
 }
