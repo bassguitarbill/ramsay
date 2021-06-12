@@ -5,7 +5,7 @@ const client = new MongoClient();
 // Connect to mongodb
 await client.connect("mongodb://127.0.0.1:27017");
 // Give your database a name
-const dbname = "ramsay";
+const dbname = "shop-chop";
 const db = client.database(dbname);
 
 interface MealSchema {

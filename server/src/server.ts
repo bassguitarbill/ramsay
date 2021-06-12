@@ -6,7 +6,6 @@ import apiController from "./controller/api/APIController.ts";
 
 const app = opine();
 const __dirname = dirname(import.meta.url);
-console.log('dirname', __dirname)
 
 app.engine('.html', renderFileToString);
 app.use(serveStatic(join(__dirname, '../../client/build')));
