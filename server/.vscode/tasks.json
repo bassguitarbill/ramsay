@@ -6,7 +6,7 @@
     {
       "label": "echo",
       "type": "shell",
-      "command": "deno run --allow-read --allow-write --allow-net --unstable --watch src/server.ts",
+      "command": "deno run --allow-read --allow-write --allow-net --allow-plugin --unstable --watch src/server.ts",
       "problemMatcher": [],
       "group": {
         "kind": "build",

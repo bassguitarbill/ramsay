@@ -1,60 +1,35 @@
-import { exists } from "https://deno.land/std@0.97.0/fs/mod.ts";
 import { v4 } from "https://deno.land/std@0.97.0/uuid/mod.ts";
+import { Meal } from '../db.ts';
 
-import type { Meal } from '../types.d.ts';
-
-const MEAL_FILE_PATH = 'data/meals.json'
-
-exists(MEAL_FILE_PATH).then((res: boolean) => { if (!res) initializeMealData()});
-
-function initializeMealData() {
-  const write = Deno.writeTextFile(MEAL_FILE_PATH, "[]");
-
-  write.then(() => console.log("Meals data successfully initialized"));
-}
+import type { Meal as MealType } from '../types.d.ts';
 
 async function getAllMeals(): Promise<string> {
-  const file = await Deno.readTextFile('data/meals.json');
-  return file;
+  const allMeals = Meal.find({ id: { $ne: null } });
+  return JSON.stringify(await allMeals.toArray());
 }
 
-async function addNewMeal(newMeal: Meal): Promise<Meal> {
-  const file = await Deno.readTextFile('data/meals.json');
-  const mealsData = JSON.parse(file) as Array<Meal>;
-  newMeal.id = v4.generate();
-  mealsData.push(newMeal);
-  const newMealsData = JSON.stringify(mealsData);
-  await Deno.writeTextFile(MEAL_FILE_PATH, newMealsData);
-  return newMeal;
+async function addNewMeal(newMeal: MealType): Promise<MealType> {
+  try {
+    newMeal.id = v4.generate();
+    await Meal.insertOne(newMeal);
+    return newMeal;
+  } catch (e) {
+    console.error(e);
+    throw e;
+  }
 }
 
-async function getMeal(id: string): Promise<Meal | undefined> {
-  const file = await Deno.readTextFile('data/meals.json');
-  const mealsData = JSON.parse(file) as Array<Meal>;
-  const meal = mealsData.find(meal => meal.id === id);
-  return meal;
+async function getMeal(id: string): Promise<MealType | undefined> {
+  return await Meal.findOne({ id: { $eq: id }});
 }
 
-async function modifyMeal(id: string, newMeal: Meal): Promise<Meal | null> {
-  const file = await Deno.readTextFile('data/meals.json');
-  const mealsData = JSON.parse(file) as Array<Meal>;
-  const existingMealIndex = mealsData.findIndex(meal => meal.id === id);
-  if (existingMealIndex === -1) return null;
-  mealsData.splice(existingMealIndex, 1, newMeal);
-  const newMealsData = JSON.stringify(mealsData);
-  await Deno.writeTextFile(MEAL_FILE_PATH, newMealsData);
+async function modifyMeal(id: string, newMeal: MealType): Promise<MealType | null> {
+  await Meal.updateOne({ id: { $eq: id } }, newMeal);
   return newMeal;
 }
 
 async function deleteMeal(id: string): Promise<boolean> {
-  const file = await Deno.readTextFile('data/meals.json');
-  const mealsData = JSON.parse(file) as Array<Meal>;
-  const existingMealIndex = mealsData.findIndex(meal => meal.id === id);
-  if (existingMealIndex === -1) return false;
-  mealsData.splice(existingMealIndex, 1);
-  const newMealsData = JSON.stringify(mealsData);
-  await Deno.writeTextFile(MEAL_FILE_PATH, newMealsData);
-  return true;
+  return (await Meal.deleteOne({ id: { $eq: id } }) > 0);
 }
 
 export default {
