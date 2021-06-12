@@ -19,7 +19,7 @@ export default function NewMeal() {
         setLoading(false);
       })
     }
-  }, []);
+  }, [id]);
 
   function handleNameChange(ev: React.ChangeEvent<HTMLInputElement>) {
     setName(ev.target.value);

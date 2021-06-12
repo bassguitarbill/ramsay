@@ -1,23 +1,17 @@
 import React from 'react';
 import './App.css';
 
-import { Link, Switch, Route, useParams } from 'react-router-dom';
+import { Switch, Route } from 'react-router-dom';
 
 import Meals from './Meals';
 import Meal from './Meal';
 import NewMeal from './NewMeal';
+import NavigationBar from './NavigationBar';
 
 function App() {
   return (
     <div>
-      <ul>
-        <li>
-          <Link to="/">Home</Link>
-        </li>
-        <li>
-          <Link to="/meals">Meals</Link>
-        </li>
-      </ul>
+      <NavigationBar />
 
       <Switch>
         <Route path="/meals/new">

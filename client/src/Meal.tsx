@@ -15,7 +15,7 @@ export default function Meal() {
     fetch(`/api/meals/${id}`).then(async (result) => {
       setMealInformation(await result.json());
     });
-  }, []);
+  }, [id]);
 
   function deleteMeal() {
     const confirmation = window.confirm(`Are you sure you want to delete ${mealInformation.name}`);

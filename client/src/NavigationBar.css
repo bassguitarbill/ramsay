@@ -1,0 +1,22 @@
+.list {
+  display: flex;
+  flex-wrap: nowrap;
+  background: none;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.list span {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+}
+
+a.selected {
+  border: black 2px solid;
+}
+
+a {
+  text-decoration: none;
+}
