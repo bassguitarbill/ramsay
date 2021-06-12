@@ -1,98 +1,59 @@
-import { ServerRequest } from "https://deno.land/std@0.97.0/http/server.ts";
 import { readAll } from "https://deno.land/std@0.97.0/io/util.ts";
 
-import { methodNotAllowed } from "../NotFoundController.ts";
 import MealsService from '../../service/MealsService.ts';
-import { generateResponse } from '../util.ts';
 
 import type { Meal } from '../../types.d.ts';
+import { Router } from "https://deno.land/x/opine@1.4.0/mod.ts";
 
 const DECODER = new TextDecoder();
 
-async function getAllMeals(_req: ServerRequest) {
-  return generateResponse(200, await MealsService.getAllMeals(), 'text/json');
-}
+const mealsController = new Router();
 
-async function addNewMeal(req: ServerRequest) {
-  const mealToAdd = JSON.parse(DECODER.decode(await readAll(req.body))) as Meal;
-  const addedMeal = await MealsService.addNewMeal(mealToAdd);
-  return generateResponse(201, JSON.stringify(addedMeal), 'text/json');
-}
-
-function getMealId(req: ServerRequest) {
-  const { url } = req;
-  const match = url.match(/\/api\/meals\/(.*)$/);
-  return match && match[1];
-}
-
-async function getMeal(req: ServerRequest) {
-  const id = getMealId(req);
-  if (!id) {
-    return generateResponse(400, 'Bad Request: missing id', 'text/plain');
-  }
-
+mealsController.get('/:id', async (req, rsp) => {
+  const { id } = req.params;
   const meal = await MealsService.getMeal(id);
   if (!meal) {
-    return generateResponse(404, `Meal ${id} not found`, 'text/plain');
+    rsp.setStatus(404).type('text').send(`Meal ${id} not found`);
+  } else {
+    rsp.setStatus(200).type('json').send(JSON.stringify(meal));
   }
-  
-  return generateResponse(200, JSON.stringify(meal), 'text/json');
-}
+});
 
-async function modifyMeal(req: ServerRequest) {
-  const id = getMealId(req);
-  if (!id) {
-    return generateResponse(400, 'Bad Request: missing id', 'text/plain');
-  }
-  
+mealsController.get('/', async (_req, rsp) => {
+  const allMeals = await MealsService.getAllMeals();
+  rsp.type('json').setStatus(200).send(allMeals);
+});
+
+mealsController.post('/', async (req, rsp) => {
+  const mealToAdd = JSON.parse(DECODER.decode(await readAll(req.body))) as Meal;
+  const addedMeal = await MealsService.addNewMeal(mealToAdd);
+  rsp.setStatus(201).type('json').send(JSON.stringify(addedMeal));
+});
+
+mealsController.put('/:id', async (req, rsp) => {
+  const { id } = req.params;
   const mealToModify = JSON.parse(DECODER.decode(await readAll(req.body))) as Meal;
   const meal = await MealsService.modifyMeal(id, mealToModify);
   if (!meal) {
-    return generateResponse(404, `Meal ${id} not found`, 'text/plain');
+    rsp.setStatus(404).type('text').send(`Meal ${id} not found`);
+  } else {
+    rsp.setStatus(200).type('json').send(JSON.stringify(meal));
   }
-  
-  return generateResponse(200, JSON.stringify(meal), 'text/json');
-}
+});
 
-async function deleteMeal(req: ServerRequest) {
-  const id = getMealId(req);
-  if (!id) {
-    return generateResponse(400, 'Bad Request: missing id', 'text/plain');
-  }
-
+mealsController.delete('/:id', async (req, rsp) => {
+  const { id } = req.params;
   const success = await MealsService.deleteMeal(id);
   if (!success) {
-    return generateResponse(404, `Meal ${id} not found`, 'text/plain');
+    rsp.setStatus(404).type('text').send(`Meal ${id} not found`);
+  } else {
+    rsp.sendStatus(204);
   }
+})
 
-  return generateResponse(204);
-}
+mealsController.all('*', (req, rsp) => {
+  console.log('Invalid route in meals', req.method, req.url);
+  rsp.setStatus(404).type('text').send(`Invalid route in meals ${req.method} ${req.url}`);
+});
 
-export default {
-  route: async (req: ServerRequest) => {
-    const { url, method } = req;
-    switch(url) {
-      case (url.match(/\/api\/meals$/) || {}).input:
-        switch(method) {
-          case 'GET':
-            return await getAllMeals(req);
-          case 'POST':
-            return await addNewMeal(req);
-          default:
-            return methodNotAllowed();
-        }
-
-      case (url.match(/\/api\/meals\/(.*)$/) || {}).input:
-        switch(method) {
-          case 'GET':
-            return await getMeal(req);
-          case 'PUT':
-            return await modifyMeal(req);
-          case 'DELETE':
-            return await deleteMeal(req);
-          default:
-            return methodNotAllowed();
-        }
-    }
-  }
-}
+export default mealsController;

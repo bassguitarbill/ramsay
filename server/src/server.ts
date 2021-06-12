@@ -1,20 +1,27 @@
-import { serve, ServerRequest } from "https://deno.land/std@0.97.0/http/server.ts";
-import route from "./controller/Controller.ts";
-import { internalServerError } from "./controller/NotFoundController.ts";
+import { opine, serveStatic } from 'https://deno.land/x/opine@1.4.0/mod.ts';
+import { renderFileToString } from 'https://deno.land/x/dejs@0.9.3/mod.ts';
+import { dirname, join } from "https://deno.land/std@0.97.0/path/mod.ts";
 
-const server = serve({ port: 8000 });
-console.log("listening on localhost:8000/");
+import apiController from "./controller/api/APIController.ts";
 
-async function respond(req: ServerRequest) {
-  return await route(req);
-}
+const app = opine();
+const __dirname = dirname(import.meta.url);
+console.log('dirname', __dirname)
 
-for await (const req of server) {
-  const rsp = await respond(req);
-  if (rsp) {
-    await req.respond(rsp);
-  } else {
-    req.respond(internalServerError());
-  }
-  
-}
+app.engine('.html', renderFileToString);
+app.use(serveStatic(join(__dirname, '../../client/build')));
+app.set('view engine', 'html');
+
+const index = Deno.readTextFileSync('../client/build/index.html');
+
+//app.use('/users', ensureAuthenticated, users);
+//app.use('/auth', auth)
+
+app.use('/api', apiController);
+
+app.get('*', (_req, res) => {
+  res.send(index);
+})
+
+app.listen(8080);
+console.log('running Opine on port 8080');
